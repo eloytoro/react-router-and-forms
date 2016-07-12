@@ -1,5 +1,6 @@
 import { connect } from 'react-redux';
 import { setValueRegister } from '../../actions/register';
+import {increment, decrement} from '../../actions/counter';
 import style from '../style.css';
 
 class Input extends React.Component {
@@ -27,9 +28,6 @@ const ConnectedInput = connect(stateToProps, dispatchToProps)(Input);
 class Counter extends React.Component {
   render() {
     var value = this.props.value;
-    // quiten esto
-    value = 0;
-
     return (
       <div className={style.field}>
         <button type="button" onClick={this.props.onDecrement}>-</button>
@@ -42,12 +40,20 @@ class Counter extends React.Component {
 
 const ConnectedCounter = connect(
   (state, props) => {
-    return {};
+    return {
+      value: state.counter
+    };
   },
   (dispatch, props) => {
-    return {};
+    return {
+      onDecrement: () => dispatch(decrement()),
+      onIncrement:() => dispatch(increment())
+    };
   }
 )(Counter);
+
+
+
 
 class Form extends React.Component {
   handleSubmit = (event) => {
