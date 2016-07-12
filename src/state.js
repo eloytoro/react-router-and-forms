@@ -1,8 +1,14 @@
+import io from 'socket.io-client';
+
+const ENABLE_SOCKETS = true;
+
+const socket = io.connect(window.location.origin);
+
 // El estado global de nuestra aplicacion
-var state = {};
+const state = {};
 
 // Listeners suscritos a cambios (es un array de funciones [fn, fn2, fn3, ...])
-var listeners = [];
+const listeners = [];
 
 /**
   * Suscribe la funcion al cambio del estado y devuelve una funcion que cuando es llamada quita la
@@ -10,16 +16,23 @@ var listeners = [];
   *
   *
   * function onChange() { this.forceUpdate() }
-  * var unsubscribe = subscribe(onChange);
+  * const unsubscribe = subscribe(onChange);
   * ...
   * unsubscribe()
   */
-var subscribe = fn => {
+const subscribe = fn => {
   listeners.push(fn);
   return () => {
-    var index = listeners.indexOf(fn);
+    const index = listeners.indexOf(fn);
     listeners.splice(index, 1);
   };
+};
+
+const assignState = (newState) => {
+  console.log('Estado actual:', state);
+  Object.assign(state, newState);
+  console.log('Nuevo estado:', state);
+  listeners.forEach(fn => fn());
 };
 
 /**
@@ -29,13 +42,19 @@ var subscribe = fn => {
  * console.log(state) -> { value: 'adios' }
  */
 export const setState = (newState) => {
-  console.log('Estado actual:', state);
-  const result = Object.assign(state, newState);
-  console.log('Nuevo estado:', state);
-  listeners.forEach(fn => fn());
+  if (ENABLE_SOCKETS) {
+    socket.emit('setState', newState);
+  }
+  assignState(newState);
 };
 
 export const getState = () => state;
+
+if (ENABLE_SOCKETS) {
+  socket.on('setState', function (data) {
+    assignState(data);
+  });
+}
 
 /**
  * Suscribe automaticamente el componente a cambios en el estado, el parametro `setState` va a
@@ -53,7 +72,7 @@ export const getState = () => state;
  *   }
  * }
  *
- * var ConnectedTitle = connectToState(Title, state => {
+ * const ConnectedTitle = connectToState(Title, state => {
  *   return { text: state.values[0] } // <- la llave "text" se le pasara al componente como un prop
  * });
  *
