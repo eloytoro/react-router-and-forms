@@ -1,2 +1,2 @@
-export const increment = () => {};
-export const decrement = () => {};
+export const increment = () => ({type: 'ADD'});
+export const decrement = () => ({type: 'REMOVE'});
